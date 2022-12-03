@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://getdoks.org/">
-    <img alt="Doks" src="https://doks.netlify.app/doks.svg" width="60">
+    <img alt="Doks" src="https://the-doc.netlify.app/doks.svg" width="60">
   </a>
 </p>
 
@@ -38,13 +38,13 @@
 
 ## Demo
 
-- [doks.netlify.app](https://doks.netlify.app/)
+- [the-doc.netlify.app](https://the-doc.netlify.app/)
 
 ## Why Doks?
 
 Nine main reasons why you should use Doks:
 
-1. __Security aware__. Get A+ scores on [Mozilla Observatory](https://observatory.mozilla.org/analyze/doks.netlify.app) out of the box. Easily change the default Security Headers to suit your needs.
+1. __Security aware__. Get A+ scores on [Mozilla Observatory](https://observatory.mozilla.org/analyze/the-doc.netlify.app) out of the box. Easily change the default Security Headers to suit your needs.
 
 2. __Fast by default__. Get 100 scores on [Google Lighthouse](https://googlechrome.github.io/lighthouse/viewer/?gist=59aafe464a68f8bc30b8e9a636d5b053) by default. Doks removes unused css, prefetches links, and lazy loads images.
 
