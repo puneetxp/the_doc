@@ -6,8 +6,11 @@
         </div>
         <div class="col-lg-9 col-xl-8 text-center">
             <p class="lead">{{ .Params.lead | safeHTML }}</p>
-            <a class="btn btn-primary btn-lg px-4 mb-2" href="/docs/{{ if .Site.Params.options.docsVersioning }}{{ .Site.Params.docsVersion }}/{{ end }}prologue/introduction/" role="button">{{ i18n "get-started" }}</a>
-            <p class="meta">Open-source Apache-2.0 license Licensed. <a href="https://github.com/puneetxp/the">GitHub v{{ $data := getJSON "/package.json" }}{{ $data.the }}</a></p>
+            <a class="btn btn-primary btn-lg px-4 mb-2"
+                href="/docs/{{ if .Site.Params.options.docsVersioning }}{{ .Site.Params.docsVersion }}/{{ end }}prologue/introduction/"
+                role="button">{{ i18n "get-started" }}</a>
+            <p class="meta">Open-source Apache-2.0 license Licensed. <a href="https://github.com/puneetxp/the">GitHub
+                    v{{ $data := getJSON "/package.json" }}{{ $data.the }}</a></p>
         </div>
     </div>
 </section>
@@ -16,31 +19,38 @@
     <div class="container">
         <div class="row justify-content-center text-center">
             <div class="col-lg-5">
-                <h2 class="h4">Security aware</h2>
-                <p>Get A+ scores on <a href="https://observatory.mozilla.org/analyze/doks.netlify.app">Mozilla Observatory</a> out of the box. Easily change the default Security Headers to suit your needs.</p>
+                <h2 class="h4">Made on PHP</h2>
+                <p>Easy to Contribute Compiler</p>
+                <a href="https://github.com/puneetxp/the/tree/main/_setup">
+                    <p>Start with Source Code.</p>
+                </a>
             </div>
             <div class="col-lg-5">
-                <h2 class="h4">Fast by default ⚡️</h2>
-                <p>Get 100 scores on <a href="https://googlechrome.github.io/lighthouse/viewer/?gist=59aafe464a68f8bc30b8e9a636d5b053">Google Lighthouse</a> by default. Doks removes unused css, prefetches links, and lazy loads images.</p>
+                <h2 class="h4">CRUD</h2>
+                <p>
+                    CURD Activity with REST API. On Build.
+                </p>
             </div>
             <div class="col-lg-5">
-                <h2 class="h4">SEO-ready</h2>
-                <p>Use sensible defaults for structured data, open graph, and Twitter cards. Or easily change the SEO settings to your liking.</p>
+                <h2 class="h4">Role Based Routing</h2>
+                <p>
+                    Define access to Routes according to Active Roles.
+                </p>
             </div>
-        </div>
+        </div>  
         <div class="row justify-content-center text-center">
             <div class="col-lg-5">
-                <h2 class="h4">Full text search</h2>
-                <p>Search your Doks site with FlexSearch. Easily customize index settings and search options to your liking.</p>
+                <h2 class="h4">Get Start with Coding</h2>
+                <p>
+                    Start with one And Scale it for fastest possible language like you can start with php scale upto rust.
+                </p>
             </div>
-            <div class="col-lg-5">
-                <h2 class="h4">Page layouts</h2>
-                <p>Build pages with a landing page, blog, or documentation layout. Add custom sections and components to suit your needs.</p>
-            </div>
-            <div class="col-lg-5">
-                <h2 class="h4">Dark mode</h2>
-                <p>Switch to a low-light UI with the click of a button. Change colors with variables to match your branding.</p>
-            </div>
+            <!-- <div class="col-lg-5">
+                <h2 class="h4">Best for Study</h2>
+                <p>
+                    I think this is best for beginner also work with mutiple language
+                </p>
+            </div> -->
         </div>
     </div>
 </section>

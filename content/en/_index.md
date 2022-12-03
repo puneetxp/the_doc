@@ -1,9 +1,9 @@
 ---
-title : "The Doc"
-description: "The Starter Template that can give to start for php ,deno(in work), go(planed), rust(planed)"
-lead: "The Starter Template that can give to start for php ,deno(in work), go(planed), rust(planed)."
-date: 2020-10-06T08:47:36+00:00
-lastmod: 2020-10-06T08:47:36+00:00
+title : "THE Doc"
+description: "The Framework that can give to start for php ,deno(in work), go(planed), rust(planed)."
+lead: "THE Framework that can give to start for php ,deno(in work), go(planed), rust(planed). Also Front end binding with backend Api."
+date: 2022-12-01T08:47:36+00:00
+lastmod: 2022-12-02T12:47:36+00:00
 draft: false
 images: []
 ---
