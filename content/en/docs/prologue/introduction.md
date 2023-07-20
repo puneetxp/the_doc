@@ -14,6 +14,10 @@ toc: true
 ---
 
 ## Get started
+You can get started with composer. 
+```bash
+composer project puneetxp/the_setup
+```
 
 For Starter you can use model in _setup/model and run the a php script on _setup directory name **autosetup.php** you can run 
 ```bash
