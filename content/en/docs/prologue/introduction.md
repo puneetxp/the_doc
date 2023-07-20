@@ -59,11 +59,9 @@ We can create json files in Model Folder, Like Name Role which is default Model 
 |        ├── role.json
 |        └── active_role.json
 ├── php/
-|    ├── App/
-|    ├── The/
-|    └── TheDep/ 
+|    └── index.php #php version of app/ 
 |    #TheDep is some dependency probably going to transfer to the based lib on composer / node / more
-└── any_front_end/
+└── angular/
 |    ├── dist/
 |    |   ├── .htaacess 
 |    |   ├── index.php
