@@ -16,13 +16,11 @@ toc: true
 ## Get started
 You can get started with composer. 
 ```bash
-composer project puneetxp/the_setup
+composer create-project puneetxp/the_template_php project-name
 ```
+### Schema
 
-For Starter you can use model in _setup/model and run the a php script on _setup directory name **autosetup.php** you can run 
-```bash
-php _setup/autosetup.php
-```
+Then We have to setup data **shecma** you can run  [Schema →](/docs/recipes/project-configuration/)
 
 ### Tutorial
 

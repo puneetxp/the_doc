@@ -22,7 +22,7 @@
   identifier = "lorem"
   url = "/guide/lorem/"
 
-[[tutorial]]
+[[tutorial]]  
   name = "Lorem"
   weight = 10
   identifier = "lorem"
@@ -57,12 +57,12 @@
   url = "/docs/prologue/quick-start/"
   parent = "get-started"
 
-[[main]]
-  name = "Tutorial"
-  weight = 50
-  identifier = "tutorial"
-  url = "/tutorial/introduction/"
-  parent = "get-started"
+# [[main]]
+#   name = "Tutorial"
+#   weight = 50
+#   identifier = "tutorial"
+#   url = "/tutorial/introduction/"
+#   parent = "get-started"
 
 [[social]]
   name = "GitHub"
