@@ -55,8 +55,8 @@ Then We have to setup data you can run [setup →](/docs/model/setup)
 We have this structure which are models
 ```bash
 ..
-├── _setup/
-│   └── model/
+├── database/
+│   └── Model/
 |        ├── user.json
 |        ├── brand.json
 |        ├── role.json
