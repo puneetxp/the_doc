@@ -22,8 +22,7 @@ import {
   compile_routes,
   response,
   Router,
-} from "https://deno.land/x/the@0.0.0.4.6/mod.ts";
-import { serve } from "https://deno.land/std@0.188.0/http/server.ts";
+} from "https://deno.land/x/the@0.0.0.4.5/mod.ts";
 const _routes = [{
   path: "/checlk",
   handler: () => response.JSON("s"),
@@ -33,11 +32,11 @@ const _routes = [{
   handler: () => response.JSON("s"),
 }];
 const routes = compile_routes(_route);
-serve(
+Deno.serve(
+  { port: 3333 },
   async (req: Request): Promise<Response> => {
     return await new Router(routes).route(req);
-  },
-  { port: 3333 },
+  }
 );
 ```
 
@@ -128,7 +127,7 @@ import {
   compile_routes,
   response,
   Router,
-} from "the_deno/mod.ts";
+} from "https://deno.land/x/the@0.0.0.4.5/mod.ts";
 export const _routes: _Routes = [
   {
     path: "/text",
@@ -262,22 +261,22 @@ const user = [
 
 Crud has it meaning here is 
 ```bash
-['c','r','u','d','all','where','upsert'] 
+['c','r','u','d','a','w','p'] 
 
 c for create
 r for read
 u for update
 d for delete
-all for read all
-where for read where
-upsert is add in bulk
+a for read all
+w for read where
+p is add in bulk
 ```
 ```ts
 const user = { 
   path: "/user", 
   guard: [AuthGuard], 
   class:UserController, 
-  crud: ['c','r','u','d','all','where','upsert'] 
+  crud: ['c','r','u','d','a','w','p']
   };
 ```
 
@@ -285,7 +284,7 @@ it is usuall work like
 ```ts
     {
       GET: [
-        ...user.crud.includes("all") &&
+        ...user.crud.includes("a") &&
             [{ path: "", handler: user.class.all }] || [],
         ...user.crud.includes("r") &&
             [{ path: "/.+", handler: user.class.show }] || [],
@@ -293,19 +292,19 @@ it is usuall work like
       POST: [
         ...user.crud.includes("c") &&
             [{ path: "", handler: user.class.store }] || [],
+        ...user.crud.includes("w") &&
+            [{ path: "where", handler: user.class.where }] || [],
         ...user.crud.includes("u") &&
             [{ path: "/.+", handler: user.class.update }] || [],
       ],
       PATCH: [
-        ...user.crud.includes("upsert") &&
+        ...user.crud.includes("p") &&
             [{ path: "", handler: user.class.upsert }] || [],
       ],
-      WHERE: [
-        ...user.crud.includes("where") &&
-            [{ path: "", handler: user.class.where }] || [],
-      ],
-      ...user.crud.includes("d") &&
-          { DELETE: [{ path: "/.+", handler: user.class.delete }] } || {},
+      DELETE: [
+        ...crud.crud.includes("d") &&
+        [{ path: "/.+", handler: crud.class.delete }] || []
+      ]
     },
 ```
 Yes i made sin to create new Method where
