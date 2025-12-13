@@ -35,6 +35,10 @@ Right now We call it data
 }],
 ```
 
+**Important:** The `datatype` must match the `mysql_data` type:
+- Use `"string"` for `varchar`, `text`, `longtext`, etc.
+- Use `"number"` for `int`, `DECIMAL`, `TINYINT`, etc.
+
 ### Enable Column
 
 Some time we need to enable colum which is define is value row is enable or now for that there we just need to 
@@ -148,7 +152,7 @@ We can make it nullable by setting default value
     }
   ],
   "relation": [ //
-    "check"//RELATION TO MODEL NAME
+    "check", //RELATION TO MODEL NAME
     {
       "name": "photo", //RELATION TO MODEL NMAE
       "default": "NULL" //DEFAULT VALUE MYSQL
