@@ -39,7 +39,10 @@ Then What we want to backend and front we have right now limited option like
 {
   "back-end":[
     "php", // A Php App
-    "deno" // A Deno App **Unstable
+    "deno", // A Deno App **Unstable
+    "dotnet", // A .NET App
+    "golang", // A Golang App
+    "spring" // A Java Spring App
   ]
 }
 ```
@@ -65,8 +68,8 @@ Specific angular configuration
 
 ### Solidjs
 
-Coming Soon
+See [SolidJS Documentation](/docs/frontend/solidjs).
 
 ### Vuejs
 
-Coming Soon
+See [VueJS Documentation](/docs/frontend/vuejs).
