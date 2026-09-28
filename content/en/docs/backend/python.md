@@ -32,7 +32,7 @@ uvicorn app.main:app --reload --port 8000
 
 ```text
 python/app/
-├── main.py                         FastAPI app: auth router + all_routers
+├── main.py                         FastAPI app: auth router + all_routers (+ custom-role guards)
 ├── core/                           runtime (scaffold, see below)
 ├── api/
 │   ├── auth.py                     POST /login, POST /register, GET /login
@@ -49,6 +49,15 @@ python/app/
 ## Routes
 
 The scope is the role namespace from the schema's `crud`: `isuper`, `islogin`, `ipublic` (or `public`), or a custom role.
+
+| Scope | Who can call it |
+|---|---|
+| `isuper` | Admins. `get_current_admin` is attached to the router, and queries are unscoped. |
+| `islogin` | Any signed-in user. Queries are limited to rows that user owns. |
+| custom role, e.g. `executive` (prefix `/executive/<model>`) | Users holding that role, or `isuper`. The template `main.py` adds `require_role(scope, "isuper")`. Queries are owner-scoped. |
+| `ipublic` / `public` | Everyone. |
+
+{{< alert icon="⚠️" text="The generated custom-role routers only check that the user is signed in. The <strong>role</strong> itself is enforced where the routers are mounted, in <code>main.py</code>. If you replace <code>main.py</code>, keep that check. The farming platform does the same thing with its <code>namespace_guards</code>." />}}
 
 | Letter | Route |
 |---|---|
