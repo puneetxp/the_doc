@@ -1,70 +1,33 @@
 ---
 title: "VueJS"
-description: "Documentation for VueJS Generator"
-lead: ""
+description: "Status of Vue generation."
+lead: "Vue support is planned, but it doesn't generate anything yet."
 date: 2026-01-11T16:26:00+05:30
-lastmod: 2026-01-11T16:26:00+05:30
+lastmod: 2026-09-28T10:00:00+05:30
 draft: false
 images: []
-menu:
-  docs:
-    parent: ""
-    identifier: "vue-gen"
 weight: 1030
 toc: true
 ---
 
-## Overview
-
-The `VueJS` generator creates a modern Vue 3 application structure using Pinia for state management.
+{{< alert icon="⚠️" text="<strong>Not functional.</strong> The generator recognises <code>\"vuets\"</code> in <code>front-end</code>, but its constructor never runs the <code>set()</code> step, so no files are written. It also prints <code>Angular Build</code> by mistake." />}}
 
 ## Configuration
 
-Add `"vuets"` to your `front-end` in `config.json`:
-
 ```json
-{
-  "front-end": ["vuets"]
-}
+{ "front-end": ["vuets"] }
 ```
 
-## Generated Structure
+The value is `vuets`. `vuejs` is not recognised.
 
-The Generator will output the following in the `vuets/src/shared/` directory:
+## Planned output
 
-- `Interface/Model/`: TypeScript Interfaces.
-- `Store/Model/`: Pinia Stores for each model.
-- `Service/Model/`: API Service files for performing CRUD operations.
+Once it is fixed, the generator (`compile-php/src/Class/vueset.php`) is designed to write the following under `vuets/src/shared/`:
 
-### Pinia Store Example
+| Path | Contents |
+|---|---|
+| `Interface/Model/<Name>.ts` | TypeScript interfaces |
+| `Store/Model/<Name>` | Pinia stores (`defineStore`) holding `rawItems` and actions such as `addItem`, `removeItem` and `upsertItem` |
+| `Service/Model/<Name>` | `fetch` wrappers that update the store after each call |
 
-Stores are generated using the `defineStore` syntax:
-
-```javascript
-export const useUserStore = defineStore({
-    id: "User",
-    state: () => ({
-        rawItems: [],
-    }),
-    actions: {
-        addItem(User) { ... },
-        removeItem(id) { ... },
-        // ...
-    }
-})
-```
-
-### Service Pattern
-
-Services encapsulate `fetch` calls and automatically dispatch actions to the corresponding Pinia store upon success.
-
-```javascript
-// Service/Model/User.js
-import { useUserStore } from "/src/Store/Model/User.js";
-
-function all() {
-    fetch("/api/user")
-      .then(r => r.json())
-      .then(i => { useUserStore().upsertItem(i) });
-}
-```
+Until then, use the [Angular]({{< relref "angular" >}}) or [SolidJS]({{< relref "solidjs" >}}) generator. Another option is to consume the REST API directly, using the interfaces generated for another frontend.

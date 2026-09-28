@@ -1,424 +1,239 @@
 ---
 title: "Deno"
-description: ""
-lead: ""
+description: "The Deno runtime @puneetxp/the: router, sessions on Deno KV, the MySQL Model and responses."
+lead: "`the_deno` is the Deno runtime, published on JSR as `@puneetxp/the`. It pairs a small, fast router with a MySQL `Model`, cookie sessions stored in Deno KV, and JSON response helpers."
 date: 2023-08-09T16:57:25+05:30
-lastmod: 2023-08-09T16:57:25+05:30
+lastmod: 2026-09-28T10:00:00+05:30
 draft: false
 images: []
-menu:
-  docs:
-    parent: ""
-    identifier: "Deno-346d7db95c547a1f9c75dcf2afb05474"
-weight: 1000
+weight: 1010
 toc: true
 ---
-## Early Stages Please report any error.
 
-Let See Example
+{{< alert icon="👉" text="The runtime is still alpha. Two lines are in use: <strong>JSR <code>@puneetxp/the@0.1.x</code></strong> (current) and <strong>deno.land/x <code>the@0.0.2</code></strong> (used by the INTAX app). They differ in CRUD verbs, CORS and error handling. See <a href=\"#version-differences\">Version differences</a>." />}}
+
+## Install
+
+Keep every import in one `dep.ts` so that bumping the version is a one-line change:
 
 ```ts
-import {
-  compile_routes,
-  response,
-  Router,
-} from "https://deno.land/x/the@0.0.0.4.5/mod.ts";
-const _routes = [{
-  path: "/checlk",
-  handler: () => response.JSON("s"),
-}, {
-  path: "/checldk",
-  method: "POST",
-  handler: () => response.JSON("s"),
-}];
-const routes = compile_routes(_route);
-Deno.serve(
-  { port: 3333 },
-  async (req: Request): Promise<Response> => {
-    return await new Router(routes).route(req);
-  }
+// deno/dep.ts
+export {
+  compile_routes, compile_url_pattern, hash, Model, response, Router, Session, setRole, DB,
+} from "jsr:@puneetxp/the@0.1.16";
+export type { _Routes, relation, Route_Group_with } from "jsr:@puneetxp/the@0.1.16";
+```
+
+The database settings come from the environment, or from `deno/.env`, which the generator writes:
+
+```bash
+DBHOST=localhost
+DBUSER=root
+DBPWD=secret
+DBNAME=my_app
+# 0.1.x only: DBPORT=3306  DBPOOL=4  DBSOCKET=/tmp/mysql.sock
+```
+
+## Server bootstrap
+
+```ts
+// deno/index.ts
+import { Router, setRole } from "./dep.ts";
+import { routes } from "./App/Routes/index.ts";
+import { Role$ } from "./App/Model/Role.ts";
+
+setRole((await Role$().all()).items);          // load the roles table once
+
+Deno.serve({ port: 9000 }, async (req) =>
+  await new Router(routes, req).URLPattern()?.run()
 );
 ```
 
-If there is Method not present it get default to GET. If path is not there it
-will assume it is empty.
-
-## Data pass
-
-It is hardcore just ***/.+*** where you need you get in pramas
-#### in route
 ```ts
-const _routes = [{
-  path: "/.+",
-  handler: () => handler,
+// deno/App/Routes/index.ts
+import { _Routes, compile_routes, compile_url_pattern } from "../../dep.ts";
+
+const route_pre: _Routes = [
+  { handler: Public.Home },
+  { islogin: true, child: [...islogin, ...isuper] },
+  ...ipublic,
+  ...Auth,
+];
+export const routes = compile_url_pattern(compile_routes(route_pre));
+```
+
+Run it with KV enabled, because sessions are stored in Deno KV:
+
+```bash
+deno run --watch --allow-all --unstable-kv index.ts
+```
+
+{{< alert icon="👉" text="The scaffold copied by <code>compile-php</code> after 0.2.24 already matches this. It pins <code>@puneetxp/the@0.1.16</code> and includes auth routes. The 0.2.24 scaffold and earlier pinned <code>the@0.0.0.4.8</code> and called the removed <code>.route(req)</code>; in projects created with those versions, replace <code>dep.ts</code> and <code>index.ts</code> by hand. The scaffold is only copied when a file doesn't exist yet." />}}
+
+## Routes
+
+```ts
+export const isuper: _Routes = [{
+  path: "isuper",
+  roles: ["isuper"],
+  child: [
+    { path: "/client", crud: { class: IsuperClientController, crud: ["c", "r", "u", "d", "a", "w"] } },
+    { path: "/report/:year", handler: ReportController.year },
+    { path: "/stats", group: { GET: [{ handler: Stats.all }], POST: [{ path: "/refresh", handler: Stats.refresh }] } },
+  ],
 }];
-
-```
-#### in handler
-
-You get params as array and you can get by ***params[0]*** , ***parmas[1]***
-```ts
-handler(req:Request, params :any[]){
-  params[0];
-}
-```
-## Response
-
-Every Controller should return new Response.
-
-```ts
-(() => response.JSON("s"));
 ```
 
-### Response Class
+| Field | Meaning |
+|---|---|
+| `path` | A URLPattern pathname, e.g. `/:id` or `/book/:book_id/client`. Slashes are normalised, so `"isuper"` works the same as `"/isuper"`. |
+| `method` | Defaults to `GET`. |
+| `handler` | `(session, param) => Promise<Response>`. |
+| `islogin` | Requires a valid session cookie. The response is **401** otherwise. |
+| `guard` | `((req) => Promise<false \| string>)[]`. Return `false` to allow the request; a string denies it and becomes the error message. |
+| `roles` | The user needs at least one of these roles. |
+| `child` | Nested routes. Paths are concatenated, and `islogin`, `guard` and `roles` are inherited. |
+| `group` | Routes keyed by HTTP method. |
+| `crud` | `{ class, crud: [letters] }`. See below. |
+
+{{< alert icon="⚠️" text="<code>guard</code> and <code>roles</code> only run when <code>islogin</code> is true, either on the route or inherited from a parent. A public route with <code>roles</code> is <strong>not</strong> protected." />}}
+
+### Handlers and parameters
+
+Every handler has the same signature. Public routes get a `Session` too; it just has no login.
 
 ```ts
-import { Session } from "./Session.ts";
-export class response {
-  //JSON return a Json response with session regenrate the cookie id 
-  //and set new cookie. as old one exipre after a request.
-  static async JSON(
-    body: any,
-    session?: Session,
-    status?: number,
-    header?: Record<string, string | null>,
-  ) {
-    return new Response(JSON.stringify(body), {
-      status: status || 200,
-      headers: {
-        "content-type": "application/json; charset=utf-8",
-        ...header,
-        ...(session && session.reactiveSession().returnCookie()),
-      },
-    });
-  }
-
-  //JSONF return header and status with body
-  static async JSONF(
-    body: any,
-    header: Record<string, string | null> = {},
-    status?: number,
-  ) {
-    return new Response(JSON.stringify(body), {
-      status: status || 200,
-      headers: {
-        "content-type": "application/json; charset=utf-8",
-        ...header,
-      },
-    });
-  }
+static async show(session: Session, param: URLPatternResult) {
+  const id = param.pathname.groups.id;                                   // from "/:id"
+  const latest = new URL(session.req.url).searchParams.get("latest");    // query string
+  const body = await session.req.json();                                  // raw Request is session.req
+  return response.JSON(await Client$().find(id), session);
 }
 ```
 
+### CRUD shorthand
 
+| Letter | 0.1.x | 0.0.2 | Handler |
+|---|---|---|---|
+| `a` | `GET /` | `GET /` | `all` |
+| `r` | `GET /:id` | `GET /:id` | `show` |
+| `c` | `POST /` | `POST /` | `store` |
+| `w` | `POST /where` | `POST /where` | `where` |
+| `u` | `PATCH /:id` and `PUT /:id` | **`POST /:id`** | `update` |
+| `p` | `PATCH /` and `PUT /` | `PATCH /` | `upsert` |
+| `d` | `DELETE /:id`, plus `DELETE /perma_delete/:id` (isuper only) | `DELETE /:id` | `delete`, `perma_delete` |
 
-## Router
+Generated `delete` handlers soft-delete (set `deleted_at`) when the model has `"additional": ["delete"]`, and hard-delete otherwise. See [Schema]({{< relref "schema#extras-additional" >}}).
 
-When I am trying to using URLPattern I see such a performace hit so it seem
-right choice is to create some light router faster then anyone.
+## Sessions and auth
 
-It have Guard and a Router Config file
+When a route has `islogin`, the router:
 
-## Config file
+1. reads the `PHPSESSID` cookie;
+2. loads the session from Deno KV at `["users", id]` and checks that the user-agent matches;
+3. runs the guards;
+4. checks `roles` against `session.Login.roles`.
 
-First Check little simple route
 ```ts
-import {
-  compile_routes,
-  response,
-  Router,
-} from "https://deno.land/x/the@0.0.0.4.5/mod.ts";
-export const _routes: _Routes = [
-  {
-    path: "/text",
-    child: [
-      {
-        path: "/",
-        handler: () => response.JSONF("GET"),
-      },
-      {
-        method:"POST",
-        handler: () => response.JSONF("POST"),
-      }];
+session.Login              // { id, name, email, roles: string[] }
+session.ActiveLoginSession // { books, book, session_id, expire, ip, agent, … }
+session.req                // the original Request
+```
+
+- **Log a user in:** `new Session(req).startnew(user, activeRoles, books)`, then return `response.JSONF(login, session.returnCookie())`.
+- **Refresh the expiry:** `session.reactiveSession()`. `response.JSONS` also refreshes it.
+- **Log out:** `session.removeSession()` and `session.removeCookie()`.
+- **Cookie settings:** from the env keys `ssl` (domain), `samesite` and `secure`.
+- **0.1.x only:** requests can also authenticate with `Authorization: Bearer <key>` against the `api_keys` table. The user with `id = 1` bypasses role checks.
+
+{{< alert icon="⚠️" text="<strong>Bug in 0.0.2:</strong> <code>Session.SessionRoles</code> gives every user every role. Upgrade to 0.1.x, where it is fixed, or recompute the roles after login. INTAX does the latter in <code>withRealRoles()</code> in its <code>AuthController.ts</code>." />}}
+
+## Model
+
+Generated models extend `Model` and are exported as a **factory**, so each call starts a fresh query:
+
+```ts
+class Standard extends Model<Client> {
+  constructor() {
+    super("client", "clients", ["id"], ["name", "email", "book_id"], ["id", "name", "email", "book_id", "created_at", "updated_at"],
+      { book: { table: "books", name: "book_id", key: "id", callback: () => Book$ } });
   }
-]
-```
-
-## Default
-
-Method default is "GET" and path is "".
-So if you leave it blank you should know what you will get.
-
-## Other Parameters
-
-For Netested child / group / crud can use. 
-
-For Permission Guard , roles and islogin can used
-### Handler
-We have two type of handler first for restrictive route and secound for public. with params
-```ts
-// raw request passto handler
-export type CallbackHandler = (
-  request: Request,
-  params: any[],
-) => Promise<Response>;
-// Session pass to handler
-export type CallbackHandlerLogin = (
-  session: Session,
-  params: any[]
-) => Promise<Response>;
-```
-
-### Islogin
-***islogin*** default is ***false***
-if your route is login protected you should put
-```ts
-  { path: "/login", handler: AuthController.Status, islogin: true },
-  { path: "/login", method: "POST", handler: AuthController.Login },
-  { path: "/logout", method: "GET", handler: AuthController.Logout, islogin: true },
-  { path: "/register", method: "POST", handler: AuthController.Register },
-```
-when islogin is true we first check for cookie and if it is in session pass to handler. if not ***Error 401***
-
-### Guard
-You need to add Islogin to guard work.
-#### Guard are async function
-
-if there is string it will return string as error 403.
-
-```ts
-guard?: () => Promise<false | string>;
-```
-
-#### Guard function
-
-```ts
-export const AuthGuard = async (): Promise<false | string> => {
-  return await "Not Assesbile";
-};
-```
-
-#### We Can use it like
-
-```ts
-import { response } from "../../repo/response.ts";
-import { compile_routes } from "../../repo/router.ts";
-import { _Routes } from "../../repo/Type.ts";
-export const _routes: _Routes = [
-  {
-    islogin: true,
-    path: "/login",
-    method: "GET",
-    handler: AuthController.Status,
-    guard: [AuthGuard],
-  },
-];
-```
-### Role function
-islogin need to true to function
-
-```ts
-  {
-    islogin: true,
-    path: "/login",
-    roles:['manager'],
-    child:[{
-      roles:['isuper'],
-      path:'/roles',
-      handler: AuthController.Status
-    }]
-    guard: [AuthGuard],
-  }
-```
-## Group
-
-### We can create a Group for curd
-
-This is just a Group with CRUD functionallity but can used as desired
-
-```ts
-const user = [
-  {
-    path: "/user",
-    guard: [AuthGuard],
-    group: {
-      GET: [
-        { path: "", handler: UserController.all, guard: [AdminGuard] },
-        { path: "/.+", handler: UserController.show },
-      ],
-      POST: [
-        { path: "", handler: UserController.store },
-        { path: "/.+", handler: UserController.update },
-      ],
-      PATCH: [{ path: "", handler: UserController.upsert }],
-      DELETE: [{ path: "/.+", handler: UserController.delete }],
-    },
-  },
-];
-```
-
-### Shorthand for crud.
-
-Crud has it meaning here is 
-```bash
-['c','r','u','d','a','w','p'] 
-
-c for create
-r for read
-u for update
-d for delete
-a for read all
-w for read where
-p is add in bulk
-```
-```ts
-const user = { 
-  path: "/user", 
-  guard: [AuthGuard], 
-  class:UserController, 
-  crud: ['c','r','u','d','a','w','p']
-  };
-```
-
-it is usuall work like 
-```ts
-    {
-      GET: [
-        ...user.crud.includes("a") &&
-            [{ path: "", handler: user.class.all }] || [],
-        ...user.crud.includes("r") &&
-            [{ path: "/.+", handler: user.class.show }] || [],
-      ],
-      POST: [
-        ...user.crud.includes("c") &&
-            [{ path: "", handler: user.class.store }] || [],
-        ...user.crud.includes("w") &&
-            [{ path: "where", handler: user.class.where }] || [],
-        ...user.crud.includes("u") &&
-            [{ path: "/.+", handler: user.class.update }] || [],
-      ],
-      PATCH: [
-        ...user.crud.includes("p") &&
-            [{ path: "", handler: user.class.upsert }] || [],
-      ],
-      DELETE: [
-        ...crud.crud.includes("d") &&
-        [{ path: "/.+", handler: crud.class.delete }] || []
-      ]
-    },
-```
-Yes i made sin to create new Method where
-### It compile with compile_routes()
-
-```ts
-export const routes = compile_routes(_routes);
-```
-
-#### So basically it is record
-
-```ts
-export type Routes = Record<string, Route[]>;
-```
-
-Router/Framework Flow
-
-
-![deno router green](https://user-images.githubusercontent.com/19248561/214393928-a341f0ef-7647-43a7-850f-354a06aa1aa7.svg)
-
-
-
-## Model and update
-
-
-Documentation Update Soon Example as below
-
-Model
-```ts
-import { Model } from '../../repo/Model.ts';
-import { relation } from '../../repo/type.ts';
-import { Account_attribute$ } from './Account_attribute.ts';
-import { Account$ } from './Account.ts';
-
-class Standard extends Model {
-  name = 'account_attribute_value';
-  table = 'account_attribute_values';
-  nullable: string[] = ["id"];
-  fillable: string[] = ['name','enable','account_attribute_id','account_id'];
-  model: string[] = ["name","enable","id","created_at","updated_at","account_attribute_id","account_id"];
-  relationship:  Record<string,  relation>  = {'account_attribute':{'table':'account_attributes','name':'account_attribute_id','key':'id','callback':()=>Account_attribute$},'account':{'table':'accounts','name':'account_id','key':'id','callback':()=>Account$}};
 }
-export const Account_attribute_value$: Standard = new Standard().set('account_attribute_values');
+export const Client$ = () => new Standard();
 ```
 
-Controller
+Code generated by older releases exports a shared instance instead (`export const Client$ = new Standard()`, called without `()`). That instance keeps its query state between calls, so prefer the factory form.
+
 ```ts
-import { response } from "../../../repo/response.ts";
-import { Session } from "../../../repo/Session.ts";
-import { Account_attribute_value$ } from "../../Model/Account_attribute_value.ts";
-export class SuperAccount_attribute_valueController {
-   static async all(session: Session){
-      const account_attribute_value = await Account_attribute_value$.all().Item;
-      return response.JSON({ account_attribute_value }, session);
-   }
-   static async where(session: Session) {
-      const req = await Account_attribute_value$.where(await session.req.json()).Item;
-      return response.JSON({ req }, session);
-   }
-   static async show(session: Session, param: string[]) {
-      const req= await Account_attribute_value$.find(param[0].toString()).Item;
-      return response.JSON({req}, session);
-   }
-   static async store(session: Session){
-      const account_attribute_value = await Account_attribute_value$.create([await session.req.json()]);
-      return response.JSON({ account_attribute_value }, session);
-   }
-   static async update(session: Session, param: string[]) {
-      const account_attribute_value = await Account_attribute_value$.update(
-      [{ id: [param[0]] }],
-      await session.req.json(),
-      );
-      return response.JSON({ account_attribute_value }, session);
-   }
-   static async upsert(session: Session){
-      const account_attribute_value = await Account_attribute_value$.create(await session.req.json());
-      return response.JSON({ account_attribute_value }, session);
-   }
-   static async delete(session: Session, param: string[]) {
-      const account_attribute_value = await Account_attribute_value$.del([{ col: "id", value: [param[0]] }]);
-      return response.JSON({ account_attribute_value }, session);
-   }
+(await Client$().all()).items;                               // rows
+(await Client$().find(5)).item;                              // one row (or undefined)
+(await Client$().where({ book_id: [3], status: ["a", "b"] }).get()).items;   // IN (...)
+Client$().where({ book_id: [3] }).andWhereC([["updated_at", ">", latest]]);  // custom operators
+await Client$().create({ name: "Acme", book_id: 3 });        // 0.0.2: chain .getInserted()
+await Client$().where({ id: [5] }).update({ name: "Acme Ltd" });
+await Client$().upsert([{ id: 5, name: "…" }, { name: "new" }]);
+await Client$().delete({ id: [5] });
+await (await Invoice$().where({ id: [1] }).get()).with("client");   // eager-load a relation (async)
+```
+
+- Results are on `.item` for a single row and `.items` for a list.
+- Writes are filtered through `fillable`.
+- 0.1.x adds `softDelete`, `withJoin(rels, where)` (a SQL JOIN), `paginate`, `count`, `toJSON()`, `clone()` and an optional KV cache.
+
+{{< alert icon="⚠️" text="<code>update()</code> without a <code>where()</code> updates <strong>every row</strong>. Always scope it." />}}
+
+## Responses
+
+```ts
+response.JSON(body, session?, status?, headers?)   // JSON + refreshed session cookie
+response.JSONS(body, session?, status?, headers?)  // same, and extends the session
+response.JSONF(body, headers?, status?)            // JSON with explicit headers (e.g. a login cookie)
+response.OPTIONS(req)                              // 0.1.x: 204 CORS pre-flight
+```
+
+In 0.1.x every helper adds CORS headers that echo the request's origin, with credentials allowed.
+
+## Pattern: per-tenant scoping
+
+A signed-in user should only reach their own rows. INTAX nests the tenant id in the URL and checks ownership before every query:
+
+```ts
+// App/Controller/Islogin/_book.ts
+export async function ownedBook(session: Session, param: URLPatternResult): Promise<number | Response> {
+  const book_id = Number(param.pathname.groups.book_id);
+  if (!book_id) return response.JSON("Book is required", session, 400);
+  const book = (await Book$.find(book_id)).item;
+  if (!book || book.user_id != session.Login.id) return response.JSON("Not Your Book", session, 403);
+  return book_id;
 }
-```
-## benchmark
 
-This Framework can little hard but benefit in speed will unreal.
-
-On Our Framework
-
-Routing session and auth are good but testing is still lacking we are in still alpha
-
-```bash
-Running 10s test @ http://localhost:3333
-  2 threads and 10 connections
-  Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency   397.97us  497.73us   9.72ms   97.06%
-    Req/Sec    14.48k     1.00k   16.18k    78.50%
-  288023 requests in 10.00s, 39.00MB read
-Requests/sec:  28800.79
-Transfer/sec:      3.90MB
+// in a controller
+const book_id = await ownedBook(session, param);
+if (book_id instanceof Response) return book_id;
+const rows = (await Client$.where({ book_id: [book_id] }).get()).items;
 ```
 
-When Oak
+## Version differences
 
-```bash
-Running 10s test @ http://localhost:8080/
-  2 threads and 10 connections
-  Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency   633.04us    0.98ms  31.01ms   97.65%
-    Req/Sec     8.79k     1.34k   14.73k    91.54%
-  188770 requests in 10.10s, 46.94MB read
-Requests/sec:  17402.96
-Transfer/sec:      4.65MB
-```
+| | `the@0.0.2` (deno.land/x) | `@puneetxp/the@0.1.x` (JSR) |
+|---|---|---|
+| Update verb | `POST /:id` | `PATCH` or `PUT /:id` |
+| Upsert verb | `PATCH` | `PATCH` or `PUT` |
+| Permanent delete | none | `DELETE /perma_delete/:id` (isuper) |
+| Route match | the last matching route wins | the first matching route wins |
+| Not found | "Not Found" with status 200 | 404, and a 500 on exceptions |
+| Roles | bug: everyone gets every role | fixed |
+| CORS | none | on every response, plus `OPTIONS` |
+| API keys | none | `Authorization: Bearer` |
+| `Model.create` | chain `.getInserted()` | sets `.item` |
 
-Usually 33%++ faster then Oak
+## Benchmark
+
+This is a simple JSON route measured with `wrk -t2 -c10 -d10s`, on an early release:
+
+| | Requests/sec | Avg latency |
+|---|---|---|
+| THE router | 28,800 | 398 µs |
+| Oak | 17,403 | 633 µs |
+
+That makes it roughly 1.6× Oak's throughput on this micro-benchmark.

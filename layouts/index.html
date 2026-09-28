@@ -1,114 +1,95 @@
 {{ define "main" }}
+{{ $docs := printf "/docs/%s" (cond (.Site.Params.options.docsVersioning | default false) (printf "%s/" .Site.Params.docsVersion) "") }}
 <section class="section container-fluid mt-n3 pb-3">
-    <div class="row justify-content-center">
-        <div class="col-lg-12 text-center">
-            <h1 class="mt-0">{{ .Title }}</h1>
-        </div>
-        <div class="col-lg-9 col-xl-8 text-center">
-          <p class="lead">{{ .Params.lead | safeHTML }}</p>
-          <a class="btn btn-primary btn-lg px-4 mb-2" href="/docs/{{ if .Site.Params.options.docsVersioning }}{{ .Site.Params.docsVersion }}/{{ end }}prologue/quick-start/" role="button">{{ i18n "get-started" }}</a>
-          <p class="meta">Open-source Apache-2.0 license Licensed. <a href="https://github.com/puneetxp/the">GitHub
-            v{{ $data := getJSON "/package.json" }}{{ $data.the }}</a></p> </div>
-        <!-- <div class="col-lg-9 col-xl-8 text-center">
-            <p class="lead">{{ .Params.lead | safeHTML }}</p>
-            <div>
-                <div>
-                    <p class="lead pb-0">Start Your Porject</p>
-                </div>
-                <pre class="m-0 overflow-hidden" style="height: 5rem;"><code class="language-bash hljs">composer create-project puneetxp/the_template_php project-name</code>
-                </pre>
-            </div>
-            <p class="lead">First use Composer to Install composer template</p>
-            <div class="d-grid gap-2 p-4 border border-primary">
-                <div class="border border-success pt-2 rounded-1">
-                    <div>
-                        <a class="btn btn-primary btn-lg px-4 pt-1 mb-2"
-                            href="/docs/{{ if .Site.Params.options.docsVersioning }}{{ .Site.Params.docsVersion }}/{{ end }}prologue/introduction/"
-                            role="button">
-                            Schema
-                        </a>
-                        <a class="btn btn-primary btn-lg px-4 pt-1 mb-2"
-                            href="/docs/{{ if .Site.Params.options.docsVersioning }}{{ .Site.Params.docsVersion }}/{{ end }}prologue/introduction/"
-                            role="button">
-                            Config
-                        </a>
-                        <a class="btn btn-primary btn-lg px-4 pt-1 mb-2"
-                            href="/docs/{{ if .Site.Params.options.docsVersioning }}{{ .Site.Params.docsVersion }}/{{ end }}prologue/introduction/"
-                            role="button">
-                            CURD
-                        </a>
-                    </div>
-                    <div class="text-center fs-3 fw-bold">MODEL</div>
-                </div>
-                <div class="border border-success pt-2 rounded-1">
-                    <div>
-                        <a class="btn btn-primary btn-lg px-4 pt-1 mb-2"
-                            href="/docs/{{ if .Site.Params.options.docsVersioning }}{{ .Site.Params.docsVersion }}/{{ end }}prologue/introduction/"
-                            role="button">
-                            PHP
-                        </a>
-                        <a class="btn btn-primary btn-lg px-4 pt-1 mb-2"
-                            href="/docs/{{ if .Site.Params.options.docsVersioning }}{{ .Site.Params.docsVersion }}/{{ end }}prologue/introduction/"
-                            role="button">
-                            DENO
-                        </a>
-                    </div>
-                    <div class="text-center fs-3 fw-bold">BACKEND</div>
-                </div>
-            </div>
-            <p class="meta">Open-source Apache-2.0 license Licensed. <a href="https://github.com/puneetxp/the">GitHub
-                    v{{ $data := getJSON "/package.json" }}{{ $data.the }}</a></p>
-        </div> -->
+  <div class="row justify-content-center">
+    <div class="col-lg-12 text-center">
+      <h1 class="mt-0">{{ .Title }}</h1>
     </div>
+    <div class="col-lg-9 col-xl-8 text-center">
+      <p class="lead">{{ .Params.lead | safeHTML }}</p>
+      <a class="btn btn-primary btn-lg px-4 mb-2" href="{{ $docs }}prologue/quick-start/" role="button">{{ i18n "get-started" }}</a>
+      <a class="btn btn-outline-primary btn-lg px-4 mb-2 ms-2" href="{{ $docs }}prologue/projects/" role="button">All projects</a>
+      <pre class="mt-4 mb-2 text-start"><code class="language-bash">composer create-project puneetxp/the_template_php my-app
+cd my-app && php setup.php</code></pre>
+      <p class="meta">Open source, Apache-2.0 licensed. <a href="https://github.com/puneetxp">GitHub</a></p>
+    </div>
+  </div>
 </section>
 
-{{ end }} {{ define "sidebar-prefooter" }} {{ if eq $.Site.Language.LanguageName "English" }}
-<section class="section section-sm">
-    <div class="container">
-        <div class="row justify-content-center text-center">
-            <div class="col-lg-5">
-                <h2 class="h4">Made on PHP</h2>
-                <p>Easy to Contribute Compiler</p>
-                <a href="https://github.com/puneetxp/the/tree/main/_setup">
-                    <p>Start with Source Code.</p>
-                </a>
-            </div>
-            <div class="col-lg-5">
-                <h2 class="h4">CRUD</h2>
-                <p>
-                    CURD Activity with REST API. On Build.
-                </p>
-            </div>
-            <div class="col-lg-5">
-                <h2 class="h4">Role Based Routing</h2>
-                <p>
-                    Define access to Routes according to Active Roles. More Like Guard and Is Login
-                </p>
-            </div>
-        </div>
-        <div class="row justify-content-center text-center">
-            <div class="col-lg-5">
-                <h2 class="h4">Get Start with Coding</h2>
-                <p>
-                    Start with one And Scale it for fastest possible language like you can start with php scale upto
-                    rust.
-                </p>
-            </div>
-            <!-- <div class="col-lg-5">
-                <h2 class="h4">Best for Study</h2>
-                <p>
-                    I think this is best for beginner also work with mutiple language
-                </p>
-            </div> -->
-        </div>
+<section class="section section-sm container">
+  <div class="row justify-content-center g-3">
+    <div class="col-md-6 col-lg-3">
+      <div class="card h-100"><div class="card-body">
+        <h2 class="h5">Model</h2>
+        <ul class="list-unstyled mb-0">
+          <li><a href="{{ $docs }}model/schema/">Schema</a></li>
+          <li><a href="{{ $docs }}model/config/">Config</a></li>
+          <li><a href="{{ $docs }}model/setup/">Generator</a></li>
+        </ul>
+      </div></div>
     </div>
+    <div class="col-md-6 col-lg-3">
+      <div class="card h-100"><div class="card-body">
+        <h2 class="h5">Backend</h2>
+        <ul class="list-unstyled mb-0">
+          <li><a href="{{ $docs }}backend/php/">PHP</a></li>
+          <li><a href="{{ $docs }}backend/deno/">Deno</a></li>
+          <li><a href="{{ $docs }}backend/python/">Python</a> <small class="text-muted">experimental</small></li>
+          <li><a href="{{ $docs }}backend/dotnet/">.NET · Go · Spring</a> <small class="text-muted">planned</small></li>
+        </ul>
+      </div></div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+      <div class="card h-100"><div class="card-body">
+        <h2 class="h5">Frontend</h2>
+        <ul class="list-unstyled mb-0">
+          <li><a href="{{ $docs }}frontend/angular/">Angular</a></li>
+          <li><a href="{{ $docs }}frontend/solidjs/">SolidJS</a></li>
+          <li><a href="{{ $docs }}frontend/web-components/">Web Components</a></li>
+        </ul>
+      </div></div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+      <div class="card h-100"><div class="card-body">
+        <h2 class="h5">Learn</h2>
+        <ul class="list-unstyled mb-0">
+          <li><a href="{{ $docs }}examples/intax-billing/">INTAX billing app</a></li>
+          <li><a href="{{ $docs }}prologue/commands/">Commands</a></li>
+          <li><a href="{{ $docs }}help/troubleshooting/">Troubleshooting</a></li>
+        </ul>
+      </div></div>
+    </div>
+  </div>
 </section>
-{{ end }} {{ end }} {{ define "sidebar-footer" }}
-<section class="section section-sm container-fluid">
+{{ end }}
+
+{{ define "sidebar-prefooter" }}{{ if eq $.Site.Language.LanguageName "English" }}
+<section class="section section-sm">
+  <div class="container">
     <div class="row justify-content-center text-center">
-        <div class="col-lg-9">
-            {{- .Content -}}
-        </div>
+      <div class="col-lg-4">
+        <h2 class="h4">Schema first</h2>
+        <p>Describe each table once in JSON. The generator writes the SQL, models, controllers, routes and TypeScript interfaces.</p>
+      </div>
+      <div class="col-lg-4">
+        <h2 class="h4">Role-based REST</h2>
+        <p>Grant <code>c r u d a w p</code> per role (<code>isuper</code>, <code>islogin</code>, <code>ipublic</code> or custom roles) and get guarded endpoints under <code>/api/&lt;role&gt;/&lt;model&gt;</code>.</p>
+      </div>
+      <div class="col-lg-4">
+        <h2 class="h4">Offline-ready frontends</h2>
+        <p>Generated Angular and SolidJS services keep stores in IndexedDB and fetch only rows that changed (<code>?latest=</code>).</p>
+      </div>
     </div>
+  </div>
+</section>
+{{ end }}{{ end }}
+
+{{ define "sidebar-footer" }}
+<section class="section section-sm container-fluid">
+  <div class="row justify-content-center text-center">
+    <div class="col-lg-9">
+      {{- .Content -}}
+    </div>
+  </div>
 </section>
 {{ end }}
