@@ -195,7 +195,36 @@ In 0.1.x every helper adds CORS headers that echo the request's origin, with cre
 
 ## Pattern: per-tenant scoping
 
-A signed-in user should only reach their own rows. INTAX nests the tenant id in the URL and checks ownership before every query:
+A signed-in user should only reach their own rows.
+
+### Generated from the schema
+
+Write `"islogin": { "can": [...], "under": "book" }` in the model and `"islogin": { "can": [...], "owner": "user_id" }` in `book.json` (see [Which rows]({{< relref "schema#which-rows-owner-and-under" >}})). The generator then nests the route under `/book/:book_id/` and every method starts with the same check:
+
+```ts
+// App/Controller/Islogin/ClientController.ts (generated)
+static async all(session: Session, param: URLPatternResult): Promise<Response> {
+   const book_id = await ownedParent(session, param, Book$, "book_id", "user_id");
+   if (book_id instanceof Response) return book_id;          // 404: not your book
+   const rows = await Client$().where({ book_id: [book_id] }).get();
+   return response.JSON(rows.items, session);
+}
+
+// App/scope.ts (template, copied once)
+export async function ownedParent(session, param, parent, key, ownerColumn) {
+  const id = Number(param.pathname.groups[key]);
+  if (!Number.isInteger(id) || id <= 0) return response.JSON("Not Found", session, 404);
+  const row = await parent().where({ id: [id], [ownerColumn]: [session.Login.id] }).first();
+  if (!row) return response.JSON("Not Found", session, 404);
+  return id;
+}
+```
+
+The generated code calls models as factories (`Book$()`), as the current generator writes them. Scoped controllers are only generated with `param: "URLPatternResult"`.
+
+### Hand-written (INTAX today)
+
+INTAX nests the tenant id in the URL and checks ownership before every query:
 
 ```ts
 // App/Controller/Islogin/_book.ts

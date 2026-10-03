@@ -154,6 +154,54 @@ The custom role names are inserted into the `roles` table for you.
 
 The HTTP verb for each letter depends on the runtime. See [PHP]({{< relref "php#crud-shorthand" >}}) and [Deno]({{< relref "deno#crud-shorthand" >}}).
 
+## Which rows: `owner` and `under`
+
+A list of letters says **what** a namespace can do, not **which rows**. With a plain list, `islogin` reads and writes every row in the table, exactly like `isuper`. To limit rows, write the entry as an object: `can` holds the letters, plus `owner` or `under`.
+
+```json
+// book.json: a user owns their books; an executive is assigned books
+"crud": {
+  "isuper":  ["c", "r", "u", "d", "a", "p", "w"],
+  "islogin": { "can": ["c", "r", "u", "d", "a", "w"], "owner": "user_id" },
+  "roles": {
+    "executive": { "can": ["r", "a"], "owner": "executive_id" }
+  }
+}
+
+// client.json: a client lives inside a book
+"crud": {
+  "isuper":  ["c", "r", "u", "d", "a", "p", "w"],
+  "islogin": { "can": ["c", "r", "u", "d", "a", "p", "w"], "under": "book" },
+  "roles": {
+    "executive": { "can": ["r", "a", "w"], "under": "book" }
+  }
+}
+```
+
+| Entry | A row is yours when | URL |
+|---|---|---|
+| `["r", "a"]` | always (no filter) | `/islogin/client` |
+| `{ "can": [...], "owner": "user_id" }` | its `user_id` is your login id | `/islogin/book` |
+| `{ "can": [...], "under": "book" }` | its book is yours | `/islogin/book/:book_id/client` |
+
+Where each value comes from, for `client.json` `"islogin": { "under": "book" }`:
+
+- `book` and `book_id`: from `under`. The parent model is `book`; the URL part and the column are `book_id` (the same `<name>_id` rule as relations).
+- `user_id`: from **`book.json`**, its `islogin` entry's `owner`. A role reads the parent's entry for the **same role**, so the executive route checks `executive_id` and the user route checks `user_id`. One table can have a different owner for each namespace.
+- Your login id: from the session at request time.
+
+On every request under a book, the generated controller first runs one query, `books WHERE id = :book_id AND user_id = <you>`. No row means **404** and nothing else runs. Then it filters by `book_id`, and on create, update and upsert it sets `book_id` from the URL, so the request body cannot pick or change the book.
+
+Generation stops with a message when:
+
+- the parent has no `owner` for that namespace (`client.json "islogin" says "under": "book", but book.json has no "owner" for "islogin".`);
+- the parent schema does not exist;
+- `public` / `ipublic` uses `owner` or `under` (there is no logged-in user).
+
+`owner` is one column, so it means one person per row per namespace. Several people per row (for example a manager assigned to many clients) needs a link table and is not supported yet.
+
+{{< alert icon="👉" text="Supported by the Deno backend and SolidJS frontend generators. The other generators read only the letters in <code>can</code>, so an object entry gives them the same unscoped code as a list; scope those by hand (Python: <code>app/core/ownership.py</code>)." />}}
+
 ## Photo models: `type`
 
 ```json
